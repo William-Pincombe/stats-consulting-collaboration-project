@@ -1,0 +1,40 @@
+---
+title: "README"
+format: html
+---
+
+A guide document containing everything I have done towards
+
+# Manual cleaning of data
+
+Manually cleaned the WTF-IISfD data.xlsx, copying into two new files. Firstly, in manually-cleaned-data.csv getting the vectors of gene expression for each trial as variables (with concentration the independent variable).
+
+Then, cleaned again to manually-cleaned-data-v2.csv where gene expression is only one variable, with each trial as a separate set of rows, and the details of the trial (treatment and gene_type) given by extra categorical variables.
+
+# Plots
+
+Script for experimenting with plots. See 01_plots.R in the R folder.
+
+Tables user the "wider" manually-cleaned-data.csv whereas the plots use the "longer" manually-cleaned-data-v2.csv
+
+This file does not contain the final best version of the plots - that is in slides.qmd !!!
+
+# Deliverable 1: Slides
+
+File: slides.qmd in main directory.
+
+For implementing the plots from the 01_plots.R in a way that is exportable to PowerPoint (the desired format of Karl Berator).
+
+# Deliverable 2: Plot
+
+Received the plot to emulate, saved as gene_plot.pdf
+
+Write R script gene_plot_updating.R to create a version of the plot that has:
+
+- Font: Times New Roman
+
+- .tiff format
+
+- (9in x 6in) with a resolution of 500
+
+Plot appears to be using the same data as those we had previously looked at.
