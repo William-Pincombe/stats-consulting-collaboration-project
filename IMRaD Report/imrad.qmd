@@ -39,35 +39,55 @@ data <- read_csv(
 
 ## Introduction
 
-We are analysing data provided by Karl Berator. The data consists of the results of 8 trials where the gene expression was measured for 11 integer levels of concentration of growth factor between 0 and 10. Four trials each were carried out using the AF42 treatment or the placebo and similarly four trials were done on each of two different cell types, Wild-Type (WT) and CT101. Two trials were carried out on each combination of treatment and cell type. Every trial was carried out on a different gene line. 
+We are analysing data provided by Karl Berator. The data consists of the results of 8 trials where the gene expression was measured for 11 integer levels of concentration of growth factor between 0 and 10. Each trial was conducted with a treatment, either AF42 or placebo, and a cell type, either Wild Type (WT) or CT101. Two trials were carried out on each combination of treatment and cell type. Every trial was carried out on a different gene line. 
 
-There are five variables in the data:
+There are therefore five variables in the data:
 
-* gene expression
+* `Gene Expression` is a continuous variable.
 
-* concentration of growth factor
+* `Concentration` of growth factor, measured in $\mu$g/ml, is a continuous variable taking integer values between 0 and 11.
 
-* treatment: a factor variable with levels AF42 and placebo.
+* `Treatment` is a factor variable with levels AF42 and placebo.
 
-* cell type: a factor variable with levels WT and CT101.
+* `Cell Type` is a factor variable with levels WT and CT101.
 
-* gene line: a factor variable with 8 levels: (CsE, bNo, JZC, fUg, jEK, Hoe, Rza and xpo).
+* `Gene Line` is a factor variable with 8 levels: CsE, bNo, JZC, fUg, jEK, Hoe, Rza and xpo.
 
 We want to study the effect of treatment on the relationship between the concentration of growth factor and the gene expression.
 
 ## Methods
 
-We cleaned the data for analysis by saving it in a .csv file in a long format, with a column representing each of the five variables. There was one observation with a missing level of gene expression, at concentration 5 with cell type WT, treatment AF42 and gene line fUg. Since gene expression is our response variable, we excluded this observation from our data, leaving 87 observations for the analysis.
+We cleaned the data for analysis by saving it in a .csv file in a long format, with a column representing each of the five variables. Some example observations of the data in this format are shown in @tbl-show-data.
+
+```{r}
+#| echo: false
+#| label: tbl-show-data
+#| tbl-cap: "The first 5 observations of the first trial, to show how the data was structured for the analysis."
+head(data) %>% 
+  gt() %>% 
+  cols_label(
+    conc = "Concentration",
+    gene_expression = "Gene Expression",
+    gene_type = "Cell Type",
+    treatment = "Treatment",
+    GL = "Gene Line"
+  )
+```
+
+
+There was one observation with a missing level of gene expression, at concentration 5 with cell type WT, treatment AF42 and gene line fUg. Since gene expression is our response variable, we excluded this observation from our data, leaving 87 observations for the analysis.
 
 We are interested in the relationship of three predictor variables - concentration, treatment and cell type - with the response variable gene expression. However, we also must control for different gene lines used in each trial of the experiment. Therefore, we will use a mixed-effects model, with concentration, treatment and cell type as our fixed effects and gene line as a random effect.
 
+We fit the mixed-effect model using Restricted Maximum Likelihood (REML) to avoid bias in the random effects [@MorrellChristopherH.1998LRTo].
+
 <!-- tuning of model -->
 
-We used the R statistical programming language [@R_ref] for our analysis, using the tidyverse package [@tidy_ref] to clean the data and the lme4 package [@lme4_ref] to fit the mixed-effects model. We used the lmerTest package [@lmerTest_ref] to perform hypothesis tests on the fitted mixed-effects models.
+We used the R statistical programming language [@R_ref] for our analysis, using the tidyverse package [@tidy_ref] to clean the data. We used the `lmer` command from the lme4 package [@lme4_ref] to fit mixed-effects models and the lmerTest package [@lmerTest_ref] to perform hypothesis tests on variable removal.
 
 ## Results
 
-Firstly, we plot the observed values, shown in @fig-scatterplot-data. The treatment AF42 appears to have a substantial impact on both the intercept and slope of the relationship between concentration and gene expression, for both cell types. The relationship also appears to be different between the cell types, with both the treatment and placebo observing higher gene expression for the same concentration in cell type CT101, as compared to the Wild Type.
+Looking at the scatter plot of the data in @fig-scatterplot-data, there appears to be a positive linear relationship between concentration and gene expression. The treatment AF42 appears to have a substantial impact on the slope of the relationship between concentration and gene expression, although this is clearly for Wild Type. Both the treatment and placebo observations appear to be higher for the same concentration in CT101 compared to Wild Type.
 
 ```{r, echo = FALSE, warning = FALSE}
 #| label: fig-scatterplot-data
@@ -194,16 +214,16 @@ M4 <- lmer(gene_expression ~ conc + gene_type + gene_type:conc +
 #| label: tbl-RE-var-comp
 #| tbl-cap: "Model metrics for the complete mixed-effects model, and with each of the fixed effect factor variables treatment and cell type removed."
 data.frame(
-  Model = c("Complete","Without cell type","Without Treatment"),
-  AIC = AIC(M2,M3,M4)$AIC,
-  BIC = BIC(M2,M3,M4)$BIC
+  Model = c("Complete","Without cell type","Without Treatment", "Without random-effects (lm)"),
+  AIC = AIC(M2,M3,M4,M1)$AIC,
+  BIC = BIC(M2,M3,M4,M1)$BIC
 ) %>% 
   gt()
 ```
 
-The AIC and BIC of the different models is shown in @tbl-RE-var-comp. We can see here that the complete model, with both treatment and cell type, has the lowest, hence most optimal, AIC and BIC. The removal of treatment has a much larger negative effect on both metrics than the removal of cell type. 
+The AIC and BIC of the different models is shown in @tbl-RE-var-comp. We also include a model without the random effects, a simple linear model fitted using the `lm` function. The complete mixed-effects model, with both treatment and cell type, has the lowest, hence most optimal, AIC and BIC. The removal of treatment has a much larger negative effect on both metrics than the removal of cell type. 
 
-We are also interested in whether the random effects are necessary. Firstly, we can extract the values of the intercept under each level of gene line from the complete model. We subtract the overall, average, intercept for the model to show the difference in intercept for each random effect. This is shown in @tbl-random-effect-values.
+We are also interested in whether the random effects are necessary. Firstly, we extract the values of the intercept under each level of gene line from the complete model. We then subtract the overall model intercept from each of these to show the difference in intercept for each random effect. This is shown in @tbl-random-effect-values.
 
 ```{r}
 #| echo: false
@@ -231,9 +251,55 @@ ranova(M2) %>%
   ) %>% 
   gt(rowname_col = "namevar") %>% 
   cols_label(
-    #`LRT` = "Test Stat."
+    `npar` = "No. Parameters",
+    `logLik` = "Log Likelihood"
   )
 ```
+
+We will therefore use the complete mixed-effects model as our final model. To check that this model satisfies the regression assumptions, we plot a histogram of the residuals in @fig-residuals-plot. We expect to see residuals approximately normally distributed. We observe that the residuals are close to the normal distribution, although they are somewhat right-skewed due to a few large positive values.
+
+```{r}
+#| echo: false
+#| label: fig-residuals-plot
+#| fig-cap: "Histogram of the residuals of the fitted mixed-effects model."
+data.frame(
+  resid = residuals(M2)
+) %>% 
+  ggplot(aes(x = resid)) + 
+  geom_histogram(col = 'black', fill = 'orange', binwidth = 0.25) + 
+  labs(x = "Residuals", y = "Count") + 
+  theme_bw()
+```
+
+Secondly, we plot the residuals against the fitted values in @fig-resid-var-plot. We expect the residuals to be roughly evenly distributed around the x-axis. There does not seem to be any substantial change in residual variance across the fitted values. However, we can again see that the residuals are somewhat right-skewed.
+
+```{r}
+#| echo: false
+#| label: fig-resid-var-plot
+#| fig-cap: "Plot of residuals against fitted values. The residuals satisfy the assumption of homoskedasticity, with roughly constant variance. However, the residuals are somewhat right-skewed."
+data.frame(
+  resid = residuals(M2),
+  fit = fitted(M2)
+) %>% 
+  ggplot(aes(x = fit, y = resid)) + 
+  geom_point() + 
+  theme_bw() + 
+  labs(
+    x = "Fitted values",
+    y = "Residuals"
+  ) + 
+  geom_hline(yintercept = 0, linetype = 2)
+```
+
+
+
+<!-- ```{r} -->
+<!-- plot(M2) -->
+<!-- ``` -->
+
+
+
+
 
 To check how well the final model fits the data, we can plot the fitted relationships above the scatter plot of the data from @fig-scatterplot-data, as shown in @fig-fitted-values-scatterplot.
 
@@ -311,32 +377,17 @@ data_fitted
 
 
 
-<!-- ```{r} -->
-<!-- # Removing gene_type (cell type) -->
-<!-- anova(M2,M3) -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- # Removing treatment -->
-<!-- anova(M2,M4) -->
-<!-- ``` -->
-
-<!-- Test clearly show we should keep both. Removing treatment has a much bigger impact on the AIC. -->
-
-
 
 
 ## Discussion
 
 Our model shows that there is a significant positive correlation between concentration and gene expression and that the AF42 treatment increases the slope of this relationship.
 
-In our final model, the estimated slope coefficients for concentration to be 1.8892 higher for the treatment than for the placebo. This indicates that we expect, for instance for the cell type CT101 that, in general, an increase in 1 $\mu$g/ml of concentration will lead to an increase of around 1.40 in gene expression without the treatment, and an increase of 3.29 if the treatment is applied.
+In our final model, the slope coefficient for concentration is estimated to be 1.8892 greater for the treatment than for the placebo. This indicates that we expect, for instance for the cell type CT101 that an increase in 1 $\mu$g/ml of concentration will lead to an increase of around 1.40 in gene expression without the treatment, and an increase of 3.29 if the treatment is applied. The fact that the AIC and BIC metrics were substantially worse without treatment, as seen in @tbl-random-effect-values, indicates the significance of this effect.
 
 We also found that the effect of concentration was different across the two cell types, with increases in concentration having a greater effect for CT101 than for Wild Type. 
-(0.6052 higher )
 
-
-In conclusion, we can say that treatment has a significant effect on the relationship between concentration and gene expression. 
+We can conclude that treatment has a significant positive effect on the effect of concentration on gene expression. 
 
 \pagebreak
 
