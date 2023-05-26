@@ -57,12 +57,38 @@ ul.task-list{list-style: none;}
 <p>A guide document containing everything I have done towards</p>
 <section id="manual-cleaning-of-data" class="level1">
 <h1>Manual cleaning of data</h1>
-<p>Manually cleaned the WTF-IISfD data.xlsx, copying into two new files. Firstly, in manually-cleaned-data.csv getting the vectors of gene expression for each trial as variables (with concentration the independent variable).</p>
-<p>Then, cleaned again to manually-cleaned-data-v2.csv where gene expression is only one variable, with each trial as a separate set of rows, and the details of the trial (treatment and gene_type) given by extra categorical variables.</p>
+<p>Manually cleaned the WTF-IISfD data.xlsx, copying into two new <code>.csv</code> files. These files are saved within a folder called <code>cleaned-data</code>. These files</p>
+<ul>
+<li><p>in <code>manually-cleaned-data-wide.csv</code>, I took the values of gene expression for each observation series saved each as a variable, with the concentration as the independent variable.</p></li>
+<li><p>in <code>manually-cleaned-data-long.csv</code>, gene expression is only one variable, with each trial as a separate set of rows, and the details of the trial (treatment and gene_type) given by extra categorical variables.</p></li>
+</ul>
+<p>I have generally used</p>
 </section>
 <section id="plots" class="level1">
 <h1>Plots</h1>
-<p>See 01_plots.R in the R folder.</p>
+<p>Script for experimenting with plots. See 01_plots.R in the R folder.</p>
+<p>Tables user the “wider” manually-cleaned-data.csv whereas the plots use the “longer” manually-cleaned-data-v2.csv</p>
+<p>This file does not contain the final best version of the plots - that is in slides.qmd !!!</p>
+</section>
+<section id="deliverable-1-slides" class="level1">
+<h1>Deliverable 1: Slides</h1>
+<p>File: slides.qmd in main directory.</p>
+<p>For implementing the plots from the 01_plots.R in a way that is exportable to PowerPoint (the desired format of Karl Berator).</p>
+</section>
+<section id="deliverable-2-plot" class="level1">
+<h1>Deliverable 2: Plot</h1>
+<p>Received the plot to emulate, saved as <code>gene_plot.pdf</code> in folder <code>gene_plot</code>.</p>
+<p>Write R script gene_plot_updating.R to create a version of the plot that has:</p>
+<ul>
+<li><p>Font: Times New Roman</p></li>
+<li><p>.tiff format</p></li>
+<li><p>(9in x 6in) with a resolution of 500</p></li>
+</ul>
+<p>Plot uses the same data we had previously looked at.</p>
+</section>
+<section id="deliverable-3-sample-size-calculation" class="level1">
+<h1>Deliverable 3: Sample size calculation</h1>
+<p>R script to do the calculation in R/03_regression_sample_size.R</p>
 </section>
 
 </main>

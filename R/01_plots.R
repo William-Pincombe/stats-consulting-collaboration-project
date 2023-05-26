@@ -5,7 +5,9 @@
 pacman::p_load(tidyverse, gt)
 
 # Import data
-data <- read_csv("manually-cleaned-data-v2.csv")
+data <- read_csv(
+  here::here("cleaned-data","manually-cleaned-data-long.csv")
+)
 
 # According to collaborator, -99 is code for missing value, so recode as NaN
 data <- data |>
@@ -13,7 +15,9 @@ data <- data |>
 
 
 # TABLES
-data_wide <- read_csv("manually-cleaned-data.csv")
+data_wide <- read_csv(
+  here::here("cleaned-data","manually-cleaned-data-wide.csv")
+)
 
 # According to collaborator, -99 is code for missing value, so recode as NaN
 data_wide <- data_wide |>
@@ -96,3 +100,4 @@ data |>
 #   geom_point() + 
 #   geom_point(aes(x = conc, y = gene_expression_WT_placebo_2)) +
 #   geom_point(aes(x = conc, y = gene_expression_WT_AF42), col = 'red')
+
