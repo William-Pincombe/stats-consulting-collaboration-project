@@ -61,9 +61,9 @@ We cleaned the data for analysis by saving it in a .csv file in a long format, w
 
 We are interested in the relationship of three predictor variables - concentration, treatment and cell type - with the response variable gene expression. However, we also must control for different gene lines used in each trial of the experiment. Therefore, we will use a mixed-effects model, with concentration, treatment and cell type as our fixed effects and gene line as a random effect.
 
-tuning of model
+<!-- tuning of model -->
 
-We used the R statistical programming language [@R_ref] for our analysis, using the tidyverse package [@tidy_ref] to clean the data and the lme4 package [@lme4_ref] to fit the mixed-effects model.
+We used the R statistical programming language [@R_ref] for our analysis, using the tidyverse package [@tidy_ref] to clean the data and the lme4 package [@lme4_ref] to fit the mixed-effects model. We used the lmerTest package [@lmerTest_ref] to perform hypothesis tests on the fitted mixed-effects models.
 
 ## Results
 
@@ -241,7 +241,7 @@ To check how well the final model fits the data, we can plot the fitted relation
 #| echo: false
 #| warning: false
 #| label: fig-fitted-values-scatterplot
-#| fig-cap: "Scatter plot of the data with the fitted values from the complete mixed-effects model."
+#| fig-cap: "Scatter plot of gene expression over concentration of growth factor. The points show the observations while the lines show the fitted values from the complete mixed-effects model. The cell types are shown in separate plots. We can see here that the random-effect term has adjusted the fitted lines to more accurately account for the differences between trials on different gene lines." 
 ## ASSUMING FINAL MODEL is: M2
 data <- data %>% 
   mutate(
@@ -255,13 +255,18 @@ WT_fitted_plot <- data %>%
   scale_colour_manual(values = col_pal,
                       breaks = c("AF42", "placebo"),
                       labels = c("Activating factor 42", "Placebo")) + 
+  scale_shape_manual(values = c(0,1,2,3,4,5,6,7),
+                     breaks = c("bNo","CsE","fUg","JZC","Hoe","jEK","Rza","xpo"),
+                     labels = c("bNo","CsE","fUg","JZC","Hoe","jEK","Rza","xpo"),
+                     drop = FALSE) + 
   theme_bw() +  
   geom_line(aes(x = conc, y = fitted, col = treatment, shape = GL)) + 
   labs(
     x = "Concentration of Growth Factor (μg/ml)",
     y = "Gene Expression",
     title = "Wild Type (WT)",
-    col = "Treatment"
+    col = "Treatment",
+    shape = "Gene Line"
   ) +
   theme(
     text = element_text(family = "times", size = 10)
@@ -276,13 +281,18 @@ CT_fitted_plot <- data %>%
   scale_colour_manual(values = col_pal,
                       breaks = c("AF42", "placebo"),
                       labels = c("Activating factor 42", "Placebo")) +   
+  scale_shape_manual(values = c(0,1,2,3,4,5,6,7),
+                     breaks = c("bNo","CsE","fUg","JZC","Hoe","jEK","Rza","xpo"),
+                     labels = c("bNo","CsE","fUg","JZC","Hoe","jEK","Rza","xpo"),
+                     drop = FALSE) + 
   theme_bw() +  
   geom_line(aes(x = conc, y = fitted, col = treatment, shape = GL)) + 
   labs(
     x = "Concentration of Growth Factor (μg/ml)",
     y = "Gene Expression",
     title = "CT101",
-    col = "Treatment"
+    col = "Treatment",
+    shape = "Gene Line"
   ) +
   theme(
     text = element_text(family = "times", size = 10)
@@ -318,14 +328,15 @@ data_fitted
 
 ## Discussion
 
-discussion of results in context of research question
+Our model shows that there is a significant positive correlation between concentration and gene expression and that the AF42 treatment increases the slope of this relationship.
 
-Our model shows that there is a significant correlation between gene expression and concentration, 
+In our final model, the estimated slope coefficients for concentration to be 1.8892 higher for the treatment than for the placebo. This indicates that we expect, for instance for the cell type CT101 that, in general, an increase in 1 $\mu$g/ml of concentration will lead to an increase of around 1.40 in gene expression without the treatment, and an increase of 3.29 if the treatment is applied.
 
-and that the treatment
+We also found that the effect of concentration was different across the two cell types, with increases in concentration having a greater effect for CT101 than for Wild Type. 
+(0.6052 higher )
 
-slope coefficient for treatment 3.2933	
-for placebo 3.2933	-1.8892 = 1.4041
+
+In conclusion, we can say that treatment has a significant effect on the relationship between concentration and gene expression. 
 
 \pagebreak
 
