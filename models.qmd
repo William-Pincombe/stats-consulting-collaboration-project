@@ -1,0 +1,259 @@
+---
+title: "Models"
+format: pdf
+---
+
+## Load packages
+
+```{r}
+pacman::p_load(tidyverse)
+```
+
+## Import the data
+
+Make sure to encode the missing value (indicated by -99) as a missing value.
+Also encode the categorical variables as factors.
+
+```{r}
+data <- read_csv(
+    here::here("cleaned-data", "manually-cleaned-data-long.csv") 
+  ) %>% 
+  mutate(gene_expression = na_if(gene_expression, -99)) %>% 
+  drop_na() %>% 
+  mutate(
+    gene_type = as.factor(gene_type),
+    treatment = as.factor(treatment),
+    GL = as.factor(GL)
+  )
+```
+
+## EDA
+
+Distribution of the dependent variable (gene expression). It is fairly clearly right-skewed.
+
+```{r}
+data %>%
+  ggplot(aes(x = gene_expression)) + 
+  geom_histogram(col = 'black', fill = 'orange', bins = 40)
+```
+
+
+Scatterplots for each gene type:
+
+```{r, warning = FALSE}
+data %>% 
+  filter(gene_type == "WT") %>% 
+  ggplot(aes(x = conc, y = gene_expression, col = treatment)) + 
+  geom_point() + 
+  geom_smooth(method = 'loess', formula = 'y ~ x', level = 0.95, alpha = 0.3, linewidth = 0.5) + 
+  labs(
+    x = "Concentration of Growth Factor",
+    y = "Gene Expression",
+    title = "Wild Type (WT)", #: Gene expression for different concentrations of growth factor, for treatment and placebo",
+    col = "Treatment")
+```
+
+
+```{r}
+data %>% 
+  filter(gene_type == "CT101") %>% 
+  ggplot(aes(x = conc, y = gene_expression, col = treatment)) + 
+  geom_point() + 
+  geom_smooth(method = 'loess', formula = 'y ~ x', level = 0.95, alpha = 0.3, size = 0.5) + 
+  labs(
+    x = "Concentration of Growth Factor",
+    y = "Gene Expression",
+    title = "Gene Type CT101", #: Gene expression for different concentrations of growth factor, for treatment and placebo",
+    col = "Treatment")
+```
+
+The two put together?
+
+```{r}
+data %>% 
+  mutate(
+    group = str_c(gene_type, treatment, sep = " ")
+  ) %>% 
+  select(-gene_type, -treatment) %>% 
+  ggplot(aes(x = conc, y = gene_expression, col = group)) + 
+  geom_point() + 
+  geom_smooth(method = 'loess', formula = 'y ~ x', level = 0.95, alpha = 0.3, size = 0.5) + 
+  labs(
+    x = "Concentration of Growth Factor",
+    y = "Gene Expression",
+    col = "Group")
+```
+
+
+
+
+Conclusions
+
+* there appears to be a linear relationship between concentration and gene expression
+
+* this linear relationship appears to have different slope for each treatment
+
+
+## Fit a simple linear model
+
+Full model without random effects, for comparison
+
+```{r}
+M1 <- lm(gene_expression ~ conc + treatment + treatment:conc + gene_type + gene_type:conc,
+         data = data)
+summary(M1)
+```
+
+With log transformation on gene expression to account for normality?
+
+```{r}
+M1log <- lm(log(gene_expression) ~ conc + treatment + treatment:conc + gene_type + gene_type:conc,
+         data = data)
+summary(M1log)
+```
+
+comparison
+
+```{r}
+AIC(M1, M1log)
+```
+
+
+
+backwards stepwise selection using AIC 
+
+```{r}
+Ms <- step(M1, direction = "backward", scope = formula(M1), trace = 0)
+summary(Ms)
+```
+
+## Repeated measures
+
+```{r}
+# Load package for repeated measures analysis
+pacman::p_load(lme4)
+```
+
+Now fit model with random effect (only intercept) for the gene line.
+
+Fit using maximum likelihood (not restricted maximum likelihood (REML))
+
+```{r}
+MEM1 <- lmer(gene_expression ~ conc + treatment + treatment:conc + gene_type + gene_type:conc +
+               (1 | GL),
+             data = data,
+             REML = TRUE)
+MEM1summ <- summary(MEM1)
+MEM1summ
+```
+
+want to check whether the random effects are justified. Do a test using the 
+
+```{r}
+pacman::p_load(lmerTest)
+ranova(MEM1)
+```
+
+p-value on Likelihood Ratio Test (??) very low so we see that the random effect is justified
+
+Now want to check the fixed effect variables
+
+```{r}
+anova(MEM1)
+```
+
+Note that these are the same as the hypothesis tests in the summary of the model. Only variable that seems to not have relationship with the response is the intercept term on cell line (gene type). However, the slope term (interaction term with concentration) definitely has a relationship, so ...
+
+try a model excluding cell line entirely, and compare
+
+```{r}
+MEM12 <- lmer(gene_expression ~ conc + treatment + treatment:conc +
+               (1 | GL),
+             data = data,
+             REML = TRUE)
+anova(MEM1,MEM12)
+```
+
+** FIGURE OUT exactly what the hypothesis test is doing, BUT
+the larger model (with cell line) has better AIC, BIC and log-liklihood (higher is better?) so keep this variable
+
+## extract the random effects
+
+```{r}
+MEM1summ
+```
+
+
+## random slope and intercept?
+
+Now fit a model with random and fixed effects with slope as well as intercept
+
+```{r}
+rmm2 <- lmer(gene_expression ~ conc + treatment + treatment:conc + gene_type + gene_type:conc +
+               (1 + conc | GL),
+             data = data)
+summary(rmm2)
+```
+
+
+```{r}
+pacman::p_load(lmerTest)
+ranova(rmm1)
+```
+
+## Reduce fixed effect terms in intercept random effect model
+
+```{r}
+rmm3 <- lmer(gene_expression ~ conc + treatment + treatment:conc + # without gene_type
+               (1 | GL),
+             data = data)
+anova(rmm3, rmm1) # doesn't give the p-values or critical values?
+```
+
+
+## Choose final model, get fitted values
+
+```{r}
+final_model <- rmm2
+data <- data %>% 
+  mutate(
+    fitted = fitted(final_model)
+  )
+```
+
+## Do diagnostic plots of the final model
+
+
+## Plot the fitted values for the chosen final model
+
+```{r}
+data %>%  
+  filter(gene_type == "WT") %>% 
+  ggplot(aes(x = conc, y = gene_expression, col = treatment, shape = GL)) + 
+  geom_point() + 
+  geom_line(aes(x = conc, y = fitted, col = treatment, shape = GL)) + 
+  labs(
+    x = "Concentration of Growth Factor",
+    y = "Gene Expression"
+  )
+```
+
+```{r}
+data %>%  
+  filter(gene_type == "CT101") %>% 
+  ggplot(aes(x = conc, y = gene_expression, col = treatment, shape = GL)) + 
+  geom_point() + 
+  geom_line(aes(x = conc, y = fitted, col = treatment, shape = GL)) + 
+  labs(
+    x = "Concentration of Growth Factor",
+    y = "Gene Expression"
+  )
+```
+
+
+## compare - AIC
+
+```{r}
+AIC(M1,rmm1,rmm2)
+```
+

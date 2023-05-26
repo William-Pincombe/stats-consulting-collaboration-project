@@ -1,0 +1,336 @@
+---
+title: "IMRaD Report"
+author: "William Pincombe"
+format: pdf
+bibliography: imrad.bib
+---
+
+```{r}
+#| echo = FALSE
+# Quietly load packages
+pacman::p_load(tidyverse, # for data processing
+               gt, # for tables
+               patchwork, # for combining plots
+               showtext, # for the plots
+               scales, # for the plots
+               lme4, # For fitting mixed-effect models
+               lmerTest # for assessing mixed-effect models
+               )
+```
+
+
+```{r}
+#| echo = FALSE,
+#| message = FALSE,
+#| warning = FALSE
+# Quietly load data
+data <- read_csv(
+    here::here("cleaned-data", "manually-cleaned-data-long.csv") 
+  ) %>% 
+  mutate(gene_expression = na_if(gene_expression, -99)) %>% 
+  drop_na() %>% 
+  mutate(
+    gene_type = as.factor(gene_type),
+    treatment = as.factor(treatment),
+    GL = as.factor(GL)
+  )
+```
+
+
+## Introduction
+
+We are analysing data provided by Karl Berator. The data consists of the results of 8 trials where the gene expression was measured for 11 integer levels of concentration of growth factor between 0 and 10. Four trials each were carried out using the AF42 treatment or the placebo and similarly four trials were done on each of two different cell types, Wild-Type (WT) and CT101. Two trials were carried out on each combination of treatment and cell type. Every trial was carried out on a different gene line. 
+
+There are five variables in the data:
+
+* gene expression
+
+* concentration of growth factor
+
+* treatment: a factor variable with levels AF42 and placebo.
+
+* cell type: a factor variable with levels WT and CT101.
+
+* gene line: a factor variable with 8 levels: (CsE, bNo, JZC, fUg, jEK, Hoe, Rza and xpo).
+
+We want to study the effect of treatment on the relationship between the concentration of growth factor and the gene expression.
+
+## Methods
+
+We cleaned the data for analysis by saving it in a .csv file in a long format, with a column representing each of the five variables. There was one observation with a missing level of gene expression, at concentration 5 with cell type WT, treatment AF42 and gene line fUg. Since gene expression is our response variable, we excluded this observation from our data, leaving 87 observations for the analysis.
+
+We are interested in the relationship of three predictor variables - concentration, treatment and cell type - with the response variable gene expression. However, we also must control for different gene lines used in each trial of the experiment. Therefore, we will use a mixed-effects model, with concentration, treatment and cell type as our fixed effects and gene line as a random effect.
+
+tuning of model
+
+We used the R statistical programming language [@R_ref] for our analysis, using the tidyverse package [@tidy_ref] to clean the data and the lme4 package [@lme4_ref] to fit the mixed-effects model.
+
+## Results
+
+Firstly, we plot the observed values, shown in @fig-scatterplot-data. The treatment AF42 appears to have a substantial impact on both the intercept and slope of the relationship between concentration and gene expression, for both cell types. The relationship also appears to be different between the cell types, with both the treatment and placebo observing higher gene expression for the same concentration in cell type CT101, as compared to the Wild Type.
+
+```{r, echo = FALSE, warning = FALSE}
+#| label: fig-scatterplot-data
+#| fig-cap: "Scatter plot of gene expression for different concentrations of growth factor. The different cell types are shown in side-by-side plots, and the treatment is indicated by the colour."
+# Recreating Jono's colour palette
+col_pal <- c("#78a8d1","#d5bf98")
+
+# Add Times New Roman font
+font_add(
+  family = "times",
+  regular = here::here(
+    "Times_New_Roman.ttf"
+  )
+)
+
+# Recreate plot
+showtext_auto() # Set showtext running
+
+WTP <- data %>% 
+  filter(gene_type == "WT") %>% 
+  ggplot(aes(x = conc, y = gene_expression, col = treatment)) + 
+  geom_point() + 
+  scale_colour_manual(values = col_pal,
+                      breaks = c("AF42", "placebo"),
+                      labels = c("Activating factor 42", "Placebo")) + 
+  theme_bw() +  
+  geom_smooth(method = 'loess', formula = 'y ~ x', level = 0.95, alpha = 0.3, linewidth = 0.5) + 
+  labs(
+    x = "Concentration of Growth Factor (μg/ml)",
+    y = "Gene Expression",
+    title = "Wild Type (WT)", #: Gene expression for different concentrations of growth factor, for treatment and placebo",
+    col = "Treatment") +
+  theme(
+    text = element_text(family = "times", size = 10)
+  ) + 
+  scale_x_continuous(breaks = seq(0,10)) + 
+  scale_y_continuous(breaks = seq(10,40,10))
+
+CTP <- data %>% 
+  filter(gene_type == "CT101") %>% 
+  ggplot(aes(x = conc, y = gene_expression, col = treatment)) + 
+  geom_point() +
+  scale_colour_manual(values = col_pal,
+                      breaks = c("AF42", "placebo"),
+                      labels = c("Activating factor 42", "Placebo")) +   
+  theme_bw() + 
+  geom_smooth(method = 'loess', formula = 'y ~ x', level = 0.95, alpha = 0.3, linewidth = 0.5) + 
+  labs(
+    x = "Concentration of Growth Factor (μg/ml)",
+    y = "Gene Expression",
+    title = "CT101", #: Gene expression for different concentrations of growth factor, for treatment and placebo",
+    col = "Treatment") +
+  theme(
+    text = element_text(family = "times", size = 10)
+  ) + 
+  scale_x_continuous(breaks = seq(0,10)) + 
+  scale_y_continuous(breaks = seq(10,50,10))
+
+
+
+data_scatter <- WTP + CTP & theme(legend.position = "bottom")
+data_scatter <- data_scatter + plot_layout(guides = "collect")
+data_scatter
+```
+
+As a result of the relationships observed in @fig-scatterplot-data, we fit a model including concentration, treatment and cell type as predictors for gene expression, with interaction terms between concentration and the two categorical variables to allow the slope to vary. However, we know that each series of observations was done on a different cell type. This could have an effect on the gene expression, so we should include it in the model. However, we are not interested in this effect, we only want to remove bias from our estimates of the other coefficients, so we include it as a random effect in a Mixed-Effects Model. The fitted coefficients for the fixed effects in this model are given by @tbl-M2.
+
+
+```{r fitting_models}
+#| echo: false 
+# Fit a simple linear model without the random effects for comparison
+M1 <- lm(gene_expression ~ conc + treatment + treatment:conc + gene_type + gene_type:conc,
+         data = data)
+
+# Fit the Mixed-Effects Model (Intercept-only random effects, REML)
+M2 <- lmer(gene_expression ~ conc + treatment + treatment:conc + gene_type + gene_type:conc +
+               (1 | GL),
+           data = data,
+           REML = TRUE)
+```
+
+
+```{r}
+#| echo: false
+#| label: tbl-M2
+#| tbl-cap: "Summary of estimated coefficients in Mixed-Effects Model"
+tab1 <- summary(M2)$coefficients %>% 
+  as.data.frame() %>% 
+  round(4)
+rownames(tab1) <- c("Intercept",
+                    "Concentration",
+                    "Treatment (placebo)",
+                    "cell type (WT)",
+                    "Concentration * Treatment (placebo)",
+                    "Concentration * cell type (WT)")
+gt(tab1, rownames_to_stub = TRUE) %>% 
+  cols_label(
+    `Estimate` = "Estimate",
+    `Std. Error` = "Std. Error",
+    `df` = "df"
+  )
+```
+
+The results in @tbl-M2 suggest that the there is a strong positive relationship between concentration and gene expression. However, the effect of treatment and cell type is more ambiguous, with the slope terms returning very low standard error and high test statistics while the intercept terms have p-values greater than the standard rule of thumb of $0.05$. To test the overall effect of each factor variable, we fit models excluding these variables, and then compare to the complete model. 
+
+
+```{r models_for_comparison}
+#| echo: false
+# Fit Mixed-Effects Model without gene_type for comparison
+M3 <- lmer(gene_expression ~ conc + treatment + treatment:conc + 
+               (1 | GL),
+           data = data,
+           REML = TRUE)
+
+# Fit Mixed-Effects Model without treatment for comparison
+M4 <- lmer(gene_expression ~ conc + gene_type + gene_type:conc +
+               (1 | GL),
+           data = data,
+           REML = TRUE)
+```
+
+```{r}
+#| echo: false
+#| label: tbl-RE-var-comp
+#| tbl-cap: "Model metrics for the complete mixed-effects model, and with each of the fixed effect factor variables treatment and cell type removed."
+data.frame(
+  Model = c("Complete","Without cell type","Without Treatment"),
+  AIC = AIC(M2,M3,M4)$AIC,
+  BIC = BIC(M2,M3,M4)$BIC
+) %>% 
+  gt()
+```
+
+The AIC and BIC of the different models is shown in @tbl-RE-var-comp. We can see here that the complete model, with both treatment and cell type, has the lowest, hence most optimal, AIC and BIC. The removal of treatment has a much larger negative effect on both metrics than the removal of cell type. 
+
+We are also interested in whether the random effects are necessary. Firstly, we can extract the values of the intercept under each level of gene line from the complete model. We subtract the overall, average, intercept for the model to show the difference in intercept for each random effect. This is shown in @tbl-random-effect-values.
+
+```{r}
+#| echo: false
+#| label: tbl-random-effect-values
+#| tbl-cap: "Intercept under each level of gene line, the random effect, in the complete model. The difference to the overall intercept is also given."
+coef(M2)$GL %>% 
+  select("Intercept" = `(Intercept)`) %>% 
+  mutate(
+    Difference = Intercept - 9.8967224
+  ) %>% 
+  gt(rownames_to_stub = TRUE)
+```
+
+We can test the significance of the random effect using the `ranova` command from the `lmerTest` package, which performs a likelihood ratio test. This fits a model without the random effect, and compares the log-likelihood. The results of this test are shown in @tbl-M2ranova, where we find that the reduced model has higher AIC and lower log likelihood. The likelihood ratio test rejects the null hypothesis that there is no difference between the log likelihoods of the models, so we take the better complete model.
+
+```{r}
+#| echo: false
+#| label: tbl-M2ranova
+#| tbl-cap: "Results of a likelihood ratio test on removing the intercept random effect for gene line (GL) from the mixed-effects model."
+# THIS LOOKS HORRIBLE! FIX THIS UP
+ranova(M2) %>% 
+  as.data.frame() %>% 
+  mutate(
+    namevar = c("Complete Model","Random Effect Removed")
+  ) %>% 
+  gt(rowname_col = "namevar") %>% 
+  cols_label(
+    #`LRT` = "Test Stat."
+  )
+```
+
+To check how well the final model fits the data, we can plot the fitted relationships above the scatter plot of the data from @fig-scatterplot-data, as shown in @fig-fitted-values-scatterplot.
+
+```{r}
+#| echo: false
+#| warning: false
+#| label: fig-fitted-values-scatterplot
+#| fig-cap: "Scatter plot of the data with the fitted values from the complete mixed-effects model."
+## ASSUMING FINAL MODEL is: M2
+data <- data %>% 
+  mutate(
+    fitted = fitted(M2)
+  )
+
+WT_fitted_plot <- data %>%  
+  filter(gene_type == "WT") %>% 
+  ggplot(aes(x = conc, y = gene_expression, col = treatment, shape = GL)) + 
+  geom_point() + 
+  scale_colour_manual(values = col_pal,
+                      breaks = c("AF42", "placebo"),
+                      labels = c("Activating factor 42", "Placebo")) + 
+  theme_bw() +  
+  geom_line(aes(x = conc, y = fitted, col = treatment, shape = GL)) + 
+  labs(
+    x = "Concentration of Growth Factor (μg/ml)",
+    y = "Gene Expression",
+    title = "Wild Type (WT)",
+    col = "Treatment"
+  ) +
+  theme(
+    text = element_text(family = "times", size = 10)
+  ) + 
+  scale_x_continuous(breaks = seq(0,10)) + 
+  scale_y_continuous(breaks = seq(10,40,10))
+
+CT_fitted_plot <- data %>%  
+  filter(gene_type == "CT101") %>% 
+  ggplot(aes(x = conc, y = gene_expression, col = treatment, shape = GL)) + 
+  geom_point() +
+  scale_colour_manual(values = col_pal,
+                      breaks = c("AF42", "placebo"),
+                      labels = c("Activating factor 42", "Placebo")) +   
+  theme_bw() +  
+  geom_line(aes(x = conc, y = fitted, col = treatment, shape = GL)) + 
+  labs(
+    x = "Concentration of Growth Factor (μg/ml)",
+    y = "Gene Expression",
+    title = "CT101",
+    col = "Treatment"
+  ) +
+  theme(
+    text = element_text(family = "times", size = 10)
+  ) + 
+  scale_x_continuous(breaks = seq(0,10)) + 
+  scale_y_continuous(breaks = seq(10,50,10))
+
+data_fitted <- WT_fitted_plot + CT_fitted_plot & theme(legend.position = "bottom")
+data_fitted <- data_fitted + plot_layout(guides = "collect")
+data_fitted
+```
+
+
+
+
+
+
+
+<!-- ```{r} -->
+<!-- # Removing gene_type (cell type) -->
+<!-- anova(M2,M3) -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- # Removing treatment -->
+<!-- anova(M2,M4) -->
+<!-- ``` -->
+
+<!-- Test clearly show we should keep both. Removing treatment has a much bigger impact on the AIC. -->
+
+
+
+
+## Discussion
+
+discussion of results in context of research question
+
+Our model shows that there is a significant correlation between gene expression and concentration, 
+
+and that the treatment
+
+slope coefficient for treatment 3.2933	
+for placebo 3.2933	-1.8892 = 1.4041
+
+\pagebreak
+
+## References
+
+::: {#refs}
+:::
+
