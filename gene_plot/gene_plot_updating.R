@@ -123,3 +123,4 @@ plot <- plot + plot_annotation(tag_levels = 'A') +
 # Exporting to .tiff format
 ggsave("gene_plot_updated.tiff", plot = plot,
        dpi = 500, height = 6, width = 9, units = "in")
+

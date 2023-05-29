@@ -58,3 +58,19 @@ So that this file could be sent via email, I manually (using the Linux Mint oper
 
 R script to do the calculation is `03_regression_sample_size.R` in the `R` folder.
 
+# Deliverable 4: IMRaD Report
+
+The IMRaD report is in a folder called `IMRaD Report`.
+
+The report is a Quarto markdown document, `imrad.qmd`, which called on a bibliography in BibTeX format `imrad.bib`.
+
+The Times New Roman font file is also saved in this directory so that it can be used as the font in the plots in the report.
+
+# Miscellaneous
+
+In the top-level directory:
+
+* `models.qmd` contains my experiments with fitting mixed-effects models.
+
+* `Important Emails from Karl` is a text file containing some emails from Karl Berator which specified the tasks - so that I could look over more easily
+
