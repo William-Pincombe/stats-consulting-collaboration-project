@@ -27,13 +27,14 @@ obj <- pwr.f2.test(
 # Get n from calculated v:
 obj$v + k + 1
 
-
+# Sample size must be at least 153.86
+# So minimum sample size is 154
 
 # Just for check: calculate power at the sample size we have (88; with 1 NA)
-# k = 6
+# k = 5
 pwr.f2.test(
-  u = 6,
-  v = 88 - 6 - 1,
-  f2 = (summary(M1)$r.squared)/(1 - summary(M1)$r.squared),
+  u = 5,
+  v = 154 - 5 - 1,
+  f2 = f2,
   sig.level = 0.05
 )

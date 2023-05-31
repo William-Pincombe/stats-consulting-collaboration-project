@@ -6,6 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="William Pincombe">
 
 <title>README</title>
 <style>
@@ -29,6 +30,7 @@ ul.task-list{list-style: none;}
 <link href="README_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="README_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet">
 
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 </head>
 
@@ -47,6 +49,12 @@ ul.task-list{list-style: none;}
 
 <div class="quarto-title-meta">
 
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>William Pincombe </p>
+          </div>
+  </div>
     
     
   </div>
@@ -54,19 +62,23 @@ ul.task-list{list-style: none;}
 
 </header>
 
-<p>A guide document containing everything I have done towards</p>
+<p>A guide document to everything done in the collaboration project with Karl Berator.</p>
+<section id="raw-data" class="level1">
+<h1>Raw Data</h1>
+<p>The data file <code>WTF-IISfD data.xlsx</code> was received from Karl Berator through a Google Drive link on 1st March 2023. It is saved in the <code>raw-data</code> folder.</p>
+</section>
 <section id="cleaning-of-data" class="level1">
 <h1>Cleaning of data</h1>
-<p>Manually cleaned the <code>WTF-IISfD data.xlsx</code>, copying into two new <code>.csv</code> files. These files are saved within a folder called <code>cleaned-data</code>. These files</p>
+<p>Manually cleaned the data from Karl by copying into two new <code>.csv</code> files in LibreOffice Calc. These files are saved within a folder called <code>cleaned-data</code>.</p>
 <ul>
-<li><p>in <code>manually-cleaned-data-wide.csv</code>, I took the values of gene expression for each observation series saved each as a variable, with the concentration as the independent variable.</p></li>
+<li><p>in <code>manually-cleaned-data-wide.csv</code>, the values of gene expression for each observation series are saved as a column, with the concentration as the independent variable. This file does not contain information about the gene line.</p></li>
 <li><p>in <code>manually-cleaned-data-long.csv</code>, gene expression is only one variable, with each trial (for different treatment, gene type and gene line) as a separate set of rows. The details for each observation, treatment, gene type and gene line, are given by categorical variables.</p></li>
 </ul>
 <p>I have generally used <code>manually-cleaned-data-long.csv</code> in analysis.</p>
 </section>
 <section id="plots" class="level1">
 <h1>Plots</h1>
-<p>Script for experimenting with plots. See 01_plots.R in the R folder.</p>
+<p><code>01_plots.R</code> in the <code>R</code> folder is a script for experimenting with plots.</p>
 <p>Tables user the “wider” <code>manually-cleaned-data-wide.csv</code> whereas the plots use the “longer” <code>manually-cleaned-data-long.csv</code></p>
 <p>This file does not contain the final version of these plots - that is in <code>slides.qmd</code> in the <code>slides</code> folder.</p>
 </section>
@@ -79,7 +91,7 @@ ul.task-list{list-style: none;}
 <section id="deliverable-2-plot" class="level1">
 <h1>Deliverable 2: Plot</h1>
 <p>See the <code>gene-plot</code> folder.</p>
-<p>Received the plot to emulate, saved as <code>gene_plot.pdf</code> in folder <code>gene_plot</code>.</p>
+<p>Received the plot to emulate, saved as <code>gene_plot.pdf</code> in folder <code>gene-plot</code>.</p>
 <p>Write R script <code>gene_plot_updating.R</code> to create a version of the plot that has:</p>
 <ul>
 <li><p>Font: Times New Roman</p></li>
@@ -94,17 +106,54 @@ ul.task-list{list-style: none;}
 <section id="deliverable-3-sample-size-calculation" class="level1">
 <h1>Deliverable 3: Sample size calculation</h1>
 <p>R script to do the calculation is <code>03_regression_sample_size.R</code> in the <code>R</code> folder.</p>
+<p>I calculated the sample size using the <code>pwr.f2.test</code> function from the <code>pwr</code> package. This function can calculate, for a linear model, one of the following from values of all four others:</p>
+<ul>
+<li><p>numerator degrees of freedom <span class="math inline">\(u\)</span></p></li>
+<li><p>denominator degrees of freedom <span class="math inline">\(v\)</span></p></li>
+<li><p>effect size</p></li>
+<li><p>significance level</p></li>
+<li><p>power</p></li>
+</ul>
+<p>Karl specified in his email that he wants power of 90% and a significance level of 0.05.</p>
+<p>He also specified that he had an <span class="math inline">\(R^2\)</span> of 0.1. We can calculate the effect size <span class="math inline">\(f^2\)</span> from this using the formula which can be found in <em>Sample Size Determination and Power</em> by Thomas P. Ryan, 2013, on page 149:</p>
+<p><span class="math display">\[
+f^2 = \frac{R^2}{1-R^2}
+\]</span></p>
+<p>The function is doing an F-test, so if we have <span class="math inline">\(k\)</span> parameters and <span class="math inline">\(n\)</span> observations, the degrees of freedom are <span class="math inline">\(u = k\)</span> and <span class="math inline">\(v = n - k - 1\)</span>. The number of parameters counts:</p>
+<ul>
+<li><p>each continuous predictor once</p></li>
+<li><p>each factor variable the number of levels minus 1, for the base level</p></li>
+</ul>
+<p>In Karl’s case, there are two continuous predictors (concentration and cell age) and three factor predictors (treatment, cell type and media), each with 2 levels, so we have <span class="math inline">\(k = 2+3\times (2-1) = 5\)</span> predictors, so we know that <span class="math inline">\(u = 5\)</span> and <span class="math inline">\(v = n - 6\)</span>.</p>
+<p>We then input the power, significance level, effect size and numerator degrees of freedom <span class="math inline">\(u\)</span> into the function to calculate the required denominator degrees of freedom <span class="math inline">\(v\)</span>, and then let <span class="math inline">\(n = v + 6\)</span>.</p>
+</section>
+<section id="modelling" class="level1">
+<h1>Modelling</h1>
+<p>Our goal in modelling was to analyse at the relationship between gene expression and concentration, and how this was impacted by the treatment.</p>
+<p><code>models.qmd</code> contains my experiments with fitting mixed-effects models, although the report <code>imrad.qmd</code> in the <code>IMRaD-report</code> folder contains the best version of these models.</p>
+<p>We used the “long” format data for modelling, so we have five variables:</p>
+<ul>
+<li><p><code>Gene Expression</code> is a continuous variable.</p></li>
+<li><p><code>Concentration</code> of growth factor, measured in <span class="math inline">\(\mu\)</span>g/ml, is a continuous variable taking integer values between 0 and 11.</p></li>
+<li><p><code>Treatment</code> is a factor variable with levels AF42 and placebo.</p></li>
+<li><p><code>Cell Type</code> is a factor variable with levels WT and CT101.</p></li>
+<li><p><code>Gene Line</code> is a factor variable with 8 levels: CsE, bNo, JZC, fUg, jEK, Hoe, Rza and xpo.</p></li>
+</ul>
+<p>We initially fit a simple linear model for comparison, using concentration, treatment and cell type as predictors for gene expression, including interaction terms between each of treatment and cell type and concentration.</p>
+<p>Then expanded to an Intercept-only</p>
+<p>Information about modelling procedure</p>
 </section>
 <section id="deliverable-4-imrad-report" class="level1">
 <h1>Deliverable 4: IMRaD Report</h1>
-<p>The IMRaD report is in a folder called <code>IMRaD Report</code>.</p>
+<p>The IMRaD report is in a folder called <code>IMRaD-report</code>.</p>
+<p>The report is a Quarto markdown document, <code>imrad.qmd</code>, which calls on a bibliography in BibTeX format <code>imrad.bib</code>.</p>
+<p>The Times New Roman font file is also saved in this directory so that it can be used as the font in the plots in the report.</p>
 </section>
 <section id="miscellaneous" class="level1">
 <h1>Miscellaneous</h1>
 <p>In the top-level directory:</p>
 <ul>
-<li><p><code>models.qmd</code> contains my experiments with fitting mixed-effects models.</p></li>
-<li><p><code>Important Emails from Karl</code> is a text file containing some emails from Karl Berator which specified the tasks - so that I could look over more easily</p></li>
+<li><code>Important Emails from Karl</code> is a text file containing some emails from Karl Berator which specified the tasks - so that I could look over more easily</li>
 </ul>
 </section>
 
