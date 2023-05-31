@@ -1,0 +1,86 @@
+Hi all,
+
+Thanks for looking at the data for me. Jono said it would be OK.
+
+I have put the data into a spreadsheet and given it a good clean, so it should be good to go. The data is here:
+
+https://docs.google.com/spreadsheets/d/1DCTEBES-uS0sz3QCSJZ_pfzwV6Gw6J9qiay74yz94dQ/edit?usp=sharing
+
+The experiment looks at the effect of a new treatment on gene expression. We compared it to saline which we used as a placebo. We also looked at two cell lines.
+
+We then added different concentrations of a growth factor to see the effect on gene expression.
+
+We are interested in the effect of treatment on the effect of growth factor on gene expression.
+
+Please could you have a look at the data and get me some slides that I can show the lab boss by C.O.B Friday March 24th, that will be smashing. Just a couple of slides showing some of the stats and some plots to show the relationship in PowerPoint would be perfect. Just email the slides once you have them
+
+Lovely
+Karl
+
+
+----------
+
+
+
+Hi William, 
+
+In the lab, we use -99 to indicate that the value is missing. 
+
+K
+
+
+----------
+
+
+Hi all, 
+
+Sorry to do this to you, but I need a plot for a conference that I am attending this weekend. 
+
+Jono made me this wonderful plot for me - attached, but the font is wrong. 
+
+The conference requirements are Times New Roman, and also they will only except a tiff file (9in x 6in) with a resolution of 500. 
+
+Jono would normally change it for me, but he is not answering his email. 
+
+Please can you make the plot for me. I am happy to add you as an author to the conference. 
+
+Sorry, but I need it by COB on Thursday as I am flying out on Good Friday. 
+
+Thank you
+Karl
+
+----------
+
+
+Hi all, 
+
+Great news everyone, my boss is keen for me to put in a grant application, and he is fine for me to include you for 0.1% of the grant. 
+
+Unfortunately, he only told me today and the grant is due on Friday 5th May at 5pm. No problem, I have completed the grant, but just need a sample size calculation. 
+
+We are going to do a linear regression of gene expression with the predictors concentration, cell age, treatment (two levels), cell type (two levels), and media (two levels). We have done a previous study and got an $R^2$ of 0.1 between the predictors and the response level. 
+
+If we want a power of 90% and a significance level of 0.05 how many samples in total do we need?
+
+Cheers,
+Karl. 
+
+
+----------
+
+
+Hi all, 
+
+Thanks for all of the work so far. We are thinking of writing this analysis up as a paper. If possible, please could you send me a report - usual IMRaD - of a predictive model of gene expression. 
+
+So I can get the paper written - if I could have the report by 5pm Friday May 26th 2023, then that would be smashing. 
+
+Cheers,
+Karl.
+
+
+----------
+
+
+There are no units for gene expression. No code please, cell type is the terminology for Wild-type verses CT101, cell line refers to the individual cells that we grew. 
+
