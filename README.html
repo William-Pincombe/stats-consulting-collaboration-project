@@ -129,9 +129,19 @@ f^2 = \frac{R^2}{1-R^2}
 </section>
 <section id="modelling" class="level1">
 <h1>Modelling</h1>
+<section id="files" class="level2">
+<h2 class="anchored" data-anchor-id="files">Files</h2>
+<p>The model fitting and analysis is split over two files:</p>
+<ul>
+<li><p><code>models.qmd</code> contains analysis that was not necessarily included in the final report.</p></li>
+<li><p><code>imrad.qmd</code> in the <code>IMRaD-report</code> folder contains the final analysis and report that was sent to Karl Berator</p></li>
+</ul>
+<p><code>imrad.qmd</code> has the more up-to-date version of any analysis that appears in both.</p>
+</section>
+<section id="modelling-process" class="level2">
+<h2 class="anchored" data-anchor-id="modelling-process">Modelling process</h2>
 <p>Our goal in modelling was to analyse at the relationship between gene expression and concentration, and how this was impacted by the treatment.</p>
-<p><code>models.qmd</code> contains my experiments with fitting mixed-effects models, although the report <code>imrad.qmd</code> in the <code>IMRaD-report</code> folder contains the best version of these models.</p>
-<p>We used the “long” format data for modelling, so we have five variables:</p>
+<p>I used the “long” format data for modelling, so we have five variables:</p>
 <ul>
 <li><p><code>Gene Expression</code> is a continuous variable.</p></li>
 <li><p><code>Concentration</code> of growth factor, measured in <span class="math inline">\(\mu\)</span>g/ml, is a continuous variable taking integer values between 0 and 11.</p></li>
@@ -139,9 +149,34 @@ f^2 = \frac{R^2}{1-R^2}
 <li><p><code>Cell Type</code> is a factor variable with levels WT and CT101.</p></li>
 <li><p><code>Gene Line</code> is a factor variable with 8 levels: CsE, bNo, JZC, fUg, jEK, Hoe, Rza and xpo.</p></li>
 </ul>
-<p>We initially fit a simple linear model for comparison, using concentration, treatment and cell type as predictors for gene expression, including interaction terms between each of treatment and cell type and concentration.</p>
-<p>Then expanded to an Intercept-only</p>
-<p>Information about modelling procedure</p>
+<p>I firstly did Exploratory Data Analysis on the data, in the <code>models.qmd</code> file, plotting</p>
+<ul>
+<li><p>a histogram of the response variable (gene expression), which shows that it is somewhat right-skewed, which could present a problem for our analysis due to the assumption of normality (i.e.&nbsp;no skewness) of the residuals.</p></li>
+<li><p>scatter plots of the two continuous variables, gene expression and concentration, to look at</p>
+<ul>
+<li>the relationship between them</li>
+<li>how this relationship differs across different levels of treatment and cell type</li>
+</ul></li>
+</ul>
+<p>I initially fitted a simple linear model <code>M1</code> using concentration, treatment and cell type as predictors for gene expression, including interaction terms between treatment and concentration and between cell type and concentration.</p>
+<ul>
+<li><p>In <code>models.qmd</code>, I experimented with applying a log transformation on <code>M1</code> in order to</p></li>
+<li><p>However, I could not find a consensus in the online literature about how to use a log transform in the mixed-effects setting, so since I could not compare this model to a mixed-effects equivalent, I abandoned this line of analysis.</p></li>
+</ul>
+<p>I then fit a mixed-effects model <code>M2</code>, with the same predictors as the fixed effects, including the interaction terms, with gene line as an intercept-only random effect.</p>
+<p>I then fit mixed effects models <code>M3</code> and <code>M4</code> removing treatment and cell type respectively, to compare the model metrics (AIC and BIC) with those in <code>M2</code> to measure the significance of these variables.</p>
+<p>As can be seen in the IMRaD Report, the AIC and BIC values for the complete mixed-effects model <code>M2</code> were much better than those of either the reduced models, or the simple linear model <code>M1</code> without the random effect. Hence, I decided to use <code>M2</code> as the final model.</p>
+<p>Finally, I experimented with a random slope model into a random intercept and random slope model, but was informed that this level of complexity was not necessary for the report.</p>
+</section>
+<section id="assessing-models" class="level2">
+<h2 class="anchored" data-anchor-id="assessing-models">Assessing Models</h2>
+<p>In the IMRaD report, I produced diagnostic plots of <code>M2</code> in the IMRaD Report, showing</p>
+<ul>
+<li><p>a histogram of the residuals, to check residual normality</p></li>
+<li><p>a scatter plot of the residuals against the fitted values, to check homoskedasticity and linearity</p></li>
+</ul>
+<p>I also plotted the fitted regression lines for each gene line over the scatter plot of the data, to check how well the model fitted the data.</p>
+</section>
 </section>
 <section id="deliverable-4-imrad-report" class="level1">
 <h1>Deliverable 4: IMRaD Report</h1>

@@ -1,7 +1,7 @@
 ---
 title: "README"
-format: html
 author: "William Pincombe"
+format: gfm
 ---
 
 A guide document to everything done in the collaboration project with Karl Berator.
@@ -96,9 +96,19 @@ We then input the power, significance level, effect size and numerator degrees o
 
 # Modelling
 
-Our goal in modelling was to analyse at the relationship between gene expression and concentration, and how this was impacted by the treatment. 
+## Files
 
-`models.qmd` contains my experiments with fitting mixed-effects models, although the report `imrad.qmd` in the `IMRaD-report` folder contains the best version of these models.
+The model fitting and analysis is split over two files:
+
+* `models.qmd` contains analysis that was not necessarily included in the final report.
+
+* `imrad.qmd` in the `IMRaD-report` folder contains the final analysis and report that was sent to Karl Berator
+
+`imrad.qmd` has the more up-to-date version of any analysis that appears in both.
+
+## Modelling process
+
+Our goal in modelling was to analyse at the relationship between gene expression and concentration, and how this was impacted by the treatment. 
 
 I used the "long" format data for modelling, so we have five variables:
 
@@ -112,18 +122,37 @@ I used the "long" format data for modelling, so we have five variables:
 
 * `Gene Line` is a factor variable with 8 levels: CsE, bNo, JZC, fUg, jEK, Hoe, Rza and xpo.
 
-I firstly did Exploratory Data Analysis on the data, with a series of plots in the `models.qmd` file.
+I firstly did Exploratory Data Analysis on the data, in the `models.qmd` file, plotting
 
-I initially fitted a simple linear model using concentration, treatment and cell type as predictors for gene expression, including interaction terms between treatment and concentration and between cell type and concentration.
+* a histogram of the response variable (gene expression), which shows that it is somewhat right-skewed, which could present a problem for our analysis due to the assumption of normality (i.e. no skewness) of the residuals.
 
-I then fit a mixed-effects model, with the same predictors as the fixed effects, including the interaction terms, with gene line as an intercept-only random effect.
+* scatter plots of the two continuous variables, gene expression and concentration, to look at
+  + the relationship between them
+  + how this relationship differs across different levels of treatment and cell type
 
-I then fit models excluding each of treatment and cell type, to compare the model metrics (AIC and BIC) with those in the model 
+I initially fitted a simple linear model `M1` using concentration, treatment and cell type as predictors for gene expression, including interaction terms between treatment and concentration and between cell type and concentration.
 
+* In `models.qmd`, I experimented with applying a log transformation on `M1` in order to 
 
-I experimented with a random slope model into a random intercept and random slope model, but was informed that this was not necessary for the project.
+* However, I could not find a consensus in the online literature about how to use a log transform in the mixed-effects setting, so since I could not compare this model to a mixed-effects equivalent, I abandoned this line of analysis.
 
+I then fit a mixed-effects model `M2`, with the same predictors as the fixed effects, including the interaction terms, with gene line as an intercept-only random effect.
 
+I then fit mixed effects models `M3` and `M4` removing treatment and cell type respectively, to compare the model metrics (AIC and BIC) with those in `M2` to measure the significance of these variables.
+
+As can be seen in the IMRaD Report, the AIC and BIC values for the complete mixed-effects model `M2` were much better than those of either the reduced models, or the simple linear model `M1` without the random effect. Hence, I decided to use `M2` as the final model.
+
+Finally, I experimented with a random slope model into a random intercept and random slope model, but was informed that this level of complexity was not necessary for the report.
+
+## Assessing Models
+
+In the IMRaD report, I produced diagnostic plots of `M2` in the IMRaD Report, showing
+
+* a histogram of the residuals, to check residual normality
+
+* a scatter plot of the residuals against the fitted values, to check homoskedasticity and linearity
+
+I also plotted the fitted regression lines for each gene line over the scatter plot of the data, to check how well the model fitted the data.
 
 # Deliverable 4: IMRaD Report
 
