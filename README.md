@@ -14,21 +14,23 @@ through a Google Drive link on 1st March 2023. It is saved in the
 # Cleaning of data
 
 Manually cleaned the data from Karl by copying into two new `.csv` files
-in LibreOffice Calc. These files are saved within a folder called
-`cleaned-data`.
+in LibreOffice Calc (an open-source alternative to excel). These files
+are saved within a folder called `cleaned-data`.
 
 -   in `manually-cleaned-data-wide.csv`, the values of gene expression
-    for each observation series are saved as a column, with the
-    concentration as the independent variable. This file does not
-    contain information about the gene line.
+    for each observation series are saved as a column, with the rows
+    representing different levels of concentration (as given by the
+    first column). Information about cell type and treatment were
+    included in the column titles. This file does not contain
+    information about the gene line.
 
--   in `manually-cleaned-data-long.csv`, gene expression is only one
-    variable, with each trial (for different treatment, gene type and
-    gene line) as a separate set of rows. The details for each
-    observation, treatment, gene type and gene line, are given by
-    categorical variables.
+-   in `manually-cleaned-data-long.csv`, the columns are concentration,
+    gene expression, treatment, gene type and gene line, with each row
+    representing an observation.
 
-I have generally used `manually-cleaned-data-long.csv` in analysis.
+I used `manually-cleaned-data-long.csv` in analysis, as it is a more
+sensible way to store the data, but I used the
+`manually-cleaned-data-wide.csv` a few times in tables.
 
 # Plots
 
@@ -44,10 +46,10 @@ This file does not contain the final version of these plots - that is in
 
 See the `slides` folder.
 
-Slides were initially constructed using `slides.qmd` in main directory,
-to create the figures and tables. This was for implementing the plots
-from the 01_plots.R in a way that is exportable to PowerPoint (the
-desired format of Karl Berator).
+Slides were initially constructed using `slides.qmd` in the `slides`
+folder, to create the figures and tables. This was for implementing the
+plots from the `01_plots.R` in a way that is exportable to PowerPoint
+(the desired format of Karl Berator).
 
 The compiled output of `slides.qmd` was then edited manually using
 LibreOffice Impress (an open-source alternative for PowerPoint) and the
@@ -57,7 +59,7 @@ result was saved in `Slides for Karl.pptx`
 
 See the `gene-plot` folder.
 
-Received the plot to emulate, saved as `gene_plot.pdf` in folder
+Received the plot from Karl and saved it as `gene_plot.pdf` in folder
 `gene-plot`.
 
 Write R script `gene_plot_updating.R` to create a version of the plot
@@ -234,7 +236,7 @@ bibliography in BibTeX format `imrad.bib`.
 The Times New Roman font file is also saved in this directory so that it
 can be used as the font in the plots in the report.
 
-# Miscellaneous
+# Miscellaneous Files
 
 In the top-level directory:
 
