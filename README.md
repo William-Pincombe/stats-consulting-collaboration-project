@@ -156,8 +156,8 @@ I used the “long” format data for modelling, so we have five variables:
 
 -   `Gene Expression` is a continuous variable.
 
--   `Concentration` of growth factor, measured in $\mu$g/ml, is a
-    continuous variable taking integer values between 0 and 11.
+-   `Concentration` of growth factor, measured in μg/ml, is a continuous
+    variable taking integer values between 0 and 11.
 
 -   `Treatment` is a factor variable with levels AF42 and placebo.
 
