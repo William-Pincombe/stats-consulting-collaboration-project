@@ -1,0 +1,243 @@
+README
+================
+William Pincombe
+
+A guide document to everything done in the collaboration project with
+Karl Berator.
+
+# Raw Data
+
+The data file `WTF-IISfD data.xlsx` was received from Karl Berator
+through a Google Drive link on 1st March 2023. It is saved in the
+`raw-data` folder.
+
+# Cleaning of data
+
+Manually cleaned the data from Karl by copying into two new `.csv` files
+in LibreOffice Calc. These files are saved within a folder called
+`cleaned-data`.
+
+-   in `manually-cleaned-data-wide.csv`, the values of gene expression
+    for each observation series are saved as a column, with the
+    concentration as the independent variable. This file does not
+    contain information about the gene line.
+
+-   in `manually-cleaned-data-long.csv`, gene expression is only one
+    variable, with each trial (for different treatment, gene type and
+    gene line) as a separate set of rows. The details for each
+    observation, treatment, gene type and gene line, are given by
+    categorical variables.
+
+I have generally used `manually-cleaned-data-long.csv` in analysis.
+
+# Plots
+
+`01_plots.R` in the `R` folder is a script for experimenting with plots.
+
+Tables user the “wider” `manually-cleaned-data-wide.csv` whereas the
+plots use the “longer” `manually-cleaned-data-long.csv`
+
+This file does not contain the final version of these plots - that is in
+`slides.qmd` in the `slides` folder.
+
+# Deliverable 1: Slides
+
+See the `slides` folder.
+
+Slides were initially constructed using `slides.qmd` in main directory,
+to create the figures and tables. This was for implementing the plots
+from the 01_plots.R in a way that is exportable to PowerPoint (the
+desired format of Karl Berator).
+
+The compiled output of `slides.qmd` was then edited manually using
+LibreOffice Impress (an open-source alternative for PowerPoint) and the
+result was saved in `Slides for Karl.pptx`
+
+# Deliverable 2: Plot
+
+See the `gene-plot` folder.
+
+Received the plot to emulate, saved as `gene_plot.pdf` in folder
+`gene-plot`.
+
+Write R script `gene_plot_updating.R` to create a version of the plot
+that has:
+
+-   Font: Times New Roman
+
+-   .tiff format
+
+-   (9in x 6in) with a resolution of 500
+
+Plot uses the same data we had previously looked at, imported from
+`manually-cleaned-data-long.csv`.
+
+The Times New Roman font file is in the directory to be called on within
+the script.
+
+The script saves the plot as a `.tiff` file with the specified
+characteristics, called `gene_plot_updated.tiff`.
+
+So that this file could be sent via email, I manually (using the Linux
+Mint operating system) compressed it into a `.zip` file, called
+`gene_plot_updated.zip`.
+
+# Deliverable 3: Sample size calculation
+
+R script to do the calculation is `03_regression_sample_size.R` in the
+`R` folder.
+
+I calculated the sample size using the `pwr.f2.test` function from the
+`pwr` package. This function can calculate, for a linear model, one of
+the following from values of all four others:
+
+-   numerator degrees of freedom $u$
+
+-   denominator degrees of freedom $v$
+
+-   effect size
+
+-   significance level
+
+-   power
+
+Karl specified in his email that he wants power of 90% and a
+significance level of 0.05.
+
+He also specified that he had an $R^2$ of 0.1. We can calculate the
+effect size $f^2$ from this using the formula which can be found in
+*Sample Size Determination and Power* by Thomas P. Ryan, 2013, on page
+149:
+
+$$
+f^2 = \frac{R^2}{1-R^2}
+$$
+
+The function is doing an F-test, so if we have $k$ parameters and $n$
+observations, the degrees of freedom are $u = k$ and $v = n - k - 1$.
+The number of parameters counts:
+
+-   each continuous predictor once
+
+-   each factor variable the number of levels minus 1, for the base
+    level
+
+In Karl’s case, there are two continuous predictors (concentration and
+cell age) and three factor predictors (treatment, cell type and media),
+each with 2 levels, so we have $k = 2+3\times (2-1) = 5$ predictors, so
+we know that $u = 5$ and $v = n - 6$.
+
+We then input the power, significance level, effect size and numerator
+degrees of freedom $u$ into the function to calculate the required
+denominator degrees of freedom $v$, and then let $n = v + 6$.
+
+# Modelling
+
+## Files
+
+The model fitting and analysis is split over two files:
+
+-   `models.qmd` contains analysis that was not necessarily included in
+    the final report.
+
+-   `imrad.qmd` in the `IMRaD-report` folder contains the final analysis
+    and report that was sent to Karl Berator
+
+`imrad.qmd` has the more up-to-date version of any analysis that appears
+in both.
+
+## Modelling process
+
+Our goal in modelling was to analyse at the relationship between gene
+expression and concentration, and how this was impacted by the
+treatment.
+
+I used the “long” format data for modelling, so we have five variables:
+
+-   `Gene Expression` is a continuous variable.
+
+-   `Concentration` of growth factor, measured in $\mu$g/ml, is a
+    continuous variable taking integer values between 0 and 11.
+
+-   `Treatment` is a factor variable with levels AF42 and placebo.
+
+-   `Cell Type` is a factor variable with levels WT and CT101.
+
+-   `Gene Line` is a factor variable with 8 levels: CsE, bNo, JZC, fUg,
+    jEK, Hoe, Rza and xpo.
+
+I firstly did Exploratory Data Analysis on the data, in the `models.qmd`
+file, plotting
+
+-   a histogram of the response variable (gene expression), which shows
+    that it is somewhat right-skewed, which could present a problem for
+    our analysis due to the assumption of normality (i.e. no skewness)
+    of the residuals.
+
+-   scatter plots of the two continuous variables, gene expression and
+    concentration, to look at
+
+    -   the relationship between them
+    -   how this relationship differs across different levels of
+        treatment and cell type
+
+I initially fitted a simple linear model `M1` using concentration,
+treatment and cell type as predictors for gene expression, including
+interaction terms between treatment and concentration and between cell
+type and concentration.
+
+-   In `models.qmd`, I experimented with applying a log transformation
+    on `M1` in order to
+
+-   However, I could not find a consensus in the online literature about
+    how to use a log transform in the mixed-effects setting, so since I
+    could not compare this model to a mixed-effects equivalent, I
+    abandoned this line of analysis.
+
+I then fit a mixed-effects model `M2`, with the same predictors as the
+fixed effects, including the interaction terms, with gene line as an
+intercept-only random effect.
+
+I then fit mixed effects models `M3` and `M4` removing treatment and
+cell type respectively, to compare the model metrics (AIC and BIC) with
+those in `M2` to measure the significance of these variables.
+
+As can be seen in the IMRaD Report, the AIC and BIC values for the
+complete mixed-effects model `M2` were much better than those of either
+the reduced models, or the simple linear model `M1` without the random
+effect. Hence, I decided to use `M2` as the final model.
+
+Finally, I experimented with a random slope model into a random
+intercept and random slope model, but was informed that this level of
+complexity was not necessary for the report.
+
+## Assessing Models
+
+In the IMRaD report, I produced diagnostic plots of `M2` in the IMRaD
+Report, showing
+
+-   a histogram of the residuals, to check residual normality
+
+-   a scatter plot of the residuals against the fitted values, to check
+    homoskedasticity and linearity
+
+I also plotted the fitted regression lines for each gene line over the
+scatter plot of the data, to check how well the model fitted the data.
+
+# Deliverable 4: IMRaD Report
+
+The IMRaD report is in a folder called `IMRaD-report`.
+
+The report is a Quarto markdown document, `imrad.qmd`, which calls on a
+bibliography in BibTeX format `imrad.bib`.
+
+The Times New Roman font file is also saved in this directory so that it
+can be used as the font in the plots in the report.
+
+# Miscellaneous
+
+In the top-level directory:
+
+-   `Important Emails from Karl` is a text file containing some emails
+    from Karl Berator which specified the tasks - so that I could look
+    over more easily
